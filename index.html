@@ -1,0 +1,328 @@
+<html>
+
+<!--
+  document.addEventListener("DOMContentLoaded", function() { 
+    var video = document.getElementById('video'), // Video
+        captureCanvas = document.getElementById('captureCanvas'), // Canvas for captured photo
+        uploadCanvas = document.getElementById('uploadCanvas'), // Canvas for uploaded photo
+        captureContext = captureCanvas.getContext('2d'), // Context for captured photo canvas
+        uploadContext = uploadCanvas.getContext('2d'), // Context for uploaded photo canvas
+        uploadedPhoto = document.getElementById('uploadedPhoto'), // Uploaded photo ID
+        capturedPhoto = document.getElementById('capturedPhoto'), // Captured Photo ID
+        imageUploadInput = document.querySelector('[name="image-upload"]'), // Image Upload Input
+        apiKey = '', // Facesoft API Key
+
+        errorAlert = document.getElementById('errorAlert'), // Error Alert
+        warningAlert = document.getElementById('warningAlert'), // Warning Alert
+        matchText = document.getElementById('match'), // Match Text
+        scoreText = document.getElementById('score'); // Score Text
+
+    // Stream Camera To Video Element
+    if(navigator.mediaDevices.getUserMedia){
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            video.srcObject = stream;
+        }).catch(function(error) {
+            console.log(error)
+        })
+    }
+
+    // On Upload Photo Button Click
+    document.getElementById('upload').addEventListener('click', function(){
+        imageUploadInput.click();
+    })
+
+    // On Uploaded Photo Change
+    imageUploadInput.addEventListener('change', function(){
+        // Get File Extension
+        var ext = imageUploadInput.files[0]['name'].substring(imageUploadInput.files[0]['name'].lastIndexOf('.') + 1).toLowerCase();
+        // If File Exists & Image
+        if (imageUploadInput.files && imageUploadInput.files[0] && (ext == "png" || ext == "jpeg" || ext == "jpg")) {
+            // Set Photo To Canvas
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    setImageToCanvas(img, uploadedPhoto, uploadCanvas, uploadContext);
+                }
+            }
+            reader.readAsDataURL(imageUploadInput.files[0]);
+        }  
+    })
+
+    // On Take Photo Button Click
+    document.getElementById('capture').addEventListener('click', function(){
+        setImageToCanvas(video, capturedPhoto, captureCanvas, captureContext, video.videoWidth, video.videoHeight);
+    })
+
+    // On Verify Photo Button Click
+    document.getElementById('verify').addEventListener('click', function(){
+        // Remove Results & Alerts
+        errorAlert.style.display = "none";
+        warningAlert.style.display = "none";
+        matchText.innerHTML = "";
+        scoreText.innerHTML = "";
+
+        // Get Base64
+        var image1 = captureCanvas.toDataURL().split(',')[1]; // Split to get ASCII
+        var image2 = uploadCanvas.toDataURL().split(',')[1]; // Split to get ASCII
+
+        // Verify if images are of the same person
+        verifyImages(image1, image2, function(response){
+                if(response){
+                    var obj = JSON.parse(response);
+
+                    // If Warning Message
+                    if(obj.message){
+                        errorAlert.style.display = "none";
+                        warningAlert.style.display = "block";
+                        warningAlert.innerHTML = obj.message;
+                        matchText.innerHTML = "";
+                        scoreText.innerHTML = "";
+                    }
+                    // If Error
+                    else if(obj.error){
+                        errorAlert.style.display = "block";
+                        errorAlert.innerHTML = obj.error;
+                        warningAlert.style.display = "none";
+                        matchText.innerHTML = "";
+                        scoreText.innerHTML = "";
+                    }
+                    // If Valid
+                    else{
+                        errorAlert.style.display = "none";
+                        warningAlert.style.display = "none";
+                        matchText.innerHTML = obj.match;
+                        scoreText.innerHTML = (obj.score*100).toFixed(2) + "% Score";
+                    }
+                }
+            })
+    })
+
+    // Set Photo To Canvas Function
+    function setImageToCanvas(image, id, canvas, context, width=image.width, height=image.height) {
+        var ratio = width / height;
+        var newWidth = canvas.width;
+        var newHeight = newWidth / ratio;
+        if (newHeight > canvas.height) {
+            newHeight = canvas.height;
+            newWidth = newHeight * ratio;
+        }
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0, newWidth, newHeight);
+        id.setAttribute('src', canvas.toDataURL('image/png'));
+    }
+
+    // Facesoft Face Match API Function
+    function verifyImages(image1, image2, callback){
+        var params = {
+            image1: image1,
+            image2: image2,
+        }
+        var xhr = new XMLHttpRequest();
+            xhr.open("POST", "https://api.facesoft.io/v1/face/match");
+            xhr.setRequestHeader("apikey", apiKey);
+            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xhr.onload = function(){
+                callback(xhr.response);
+            }
+            xhr.send(JSON.stringify(params));
+    }
+
+
+    // Set Default Images For Uploaded & Captured Photo
+    setImageToCanvas(uploadedPhoto, uploadedPhoto, uploadCanvas, uploadContext);
+    setImageToCanvas(capturedPhoto, capturedPhoto, captureCanvas, captureContext);
+});
+
+  @media (min-width: @screen-sm-min) {
+    margin-left:  (@gutter / -2);
+    margin-right: (@gutter / -2);
+  }
+
+  // Negative margin nested rows out to align the content of columns
+  .row {
+    margin-left:  (@gutter / -2);
+    margin-right: (@gutter / -2);
+  }
+}
+
+// Generate the extra small columns
+.make-xs-column(@columns; @gutter: @grid-gutter-width) {
+  position: relative;
+  // Prevent columns from collapsing when empty
+  min-height: 1px;
+  // Inner gutter via padding
+  padding-left:  (@gutter / 2);
+  padding-right: (@gutter / 2);
+
+  // Calculate width based on number of columns available
+  @media (min-width: @grid-float-breakpoint) {
+    float: left;
+    width: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the small columns
+.make-sm-column(@columns; @gutter: @grid-gutter-width) {
+  position: relative;
+  // Prevent columns from collapsing when empty
+  min-height: 1px;
+  // Inner gutter via padding
+  padding-left:  (@gutter / 2);
+  padding-right: (@gutter / 2);
+
+  // Calculate width based on number of columns available
+  @media (min-width: @screen-sm-min) {
+    float: left;
+    width: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the small column offsets
+.make-sm-column-offset(@columns) {
+  @media (min-width: @screen-sm-min) {
+    margin-left: percentage((@columns / @grid-columns));
+  }
+}
+.make-sm-column-push(@columns) {
+  @media (min-width: @screen-sm-min) {
+    left: percentage((@columns / @grid-columns));
+  }
+}
+.make-sm-column-pull(@columns) {
+  @media (min-width: @screen-sm-min) {
+    right: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the medium columns
+.make-md-column(@columns; @gutter: @grid-gutter-width) {
+  position: relative;
+  // Prevent columns from collapsing when empty
+  min-height: 1px;
+  // Inner gutter via padding
+  padding-left:  (@gutter / 2);
+  padding-right: (@gutter / 2);
+
+  // Calculate width based on number of columns available
+  @media (min-width: @screen-md-min) {
+    float: left;
+    width: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the medium column offsets
+.make-md-column-offset(@columns) {
+  @media (min-width: @screen-md-min) {
+    margin-left: percentage((@columns / @grid-columns));
+  }
+}
+.make-md-column-push(@columns) {
+  @media (min-width: @screen-md-min) {
+    left: percentage((@columns / @grid-columns));
+  }
+}
+.make-md-column-pull(@columns) {
+  @media (min-width: @screen-md-min) {
+    right: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the large columns
+.make-lg-column(@columns; @gutter: @grid-gutter-width) {
+  position: relative;
+  // Prevent columns from collapsing when empty
+  min-height: 1px;
+  // Inner gutter via padding
+  padding-left:  (@gutter / 2);
+  padding-right: (@gutter / 2);
+
+  // Calculate width based on number of columns available
+  @media (min-width: @screen-lg-min) {
+    float: left;
+    width: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the large column offsets
+.make-lg-column-offset(@columns) {
+  @media (min-width: @screen-lg-min) {
+    margin-left: percentage((@columns / @grid-columns));
+  }
+}
+.make-lg-column-push(@columns) {
+  @media (min-width: @screen-lg-min) {
+    left: percentage((@columns / @grid-columns));
+  }
+}
+.make-lg-column-pull(@columns) {
+  @media (min-width: @screen-lg-min) {
+    right: percentage((@columns / @grid-columns));
+-->
+<head>
+	<title>converter</title>
+	<!--
+
+		processEmbImg('emb31E3E4760','data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEABsbGxscGx4hIR4qLSgtKj04MzM4PV1CR0JHQl2NWGdYWGdYjX2Xe3N7l33gsJycsOD/2c7Z//////////////8BGxsbGxwbHiEhHiotKC0qPTgzMzg9XUJHQkdCXY1YZ1hYZ1iNfZd7c3uXfeCwnJyw4P/Zztn////////////////CABEIAFAAUAMBIgACEQEDEQH/xAAZAAEAAwEBAAAAAAAAAAAAAAAAAQIDBAb/2gAIAQEAAAAA9MAAAAAAOKOvHbDSqsTvlYreu4AAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAoCAhADEAAAAAAAAAAAAD//xAAoEAACAgICAQEIAwAAAAAAAAABAgMRABIhIjFhIzBAQUJQUVJxgZH/2gAIAQEAAT8A+OZ0StnA/k4XUEKWFnwPcvK5MTpECHBRdj5vI+wFBJCW22VuTocVg62Mld9uniMbMPz6Yey8MRY4IxVcySAzSUpWucdnLiNW167M2NtFTbsy2AwbnzxYyYyAxaedjY/YAXWTSkxeyPJQsD+oGSIgej162lD6yc3W4hWjh+VHqDdYqhFAA4GJHJRYyurMdmAOQqUUp8lPU+mIpEkxI4JWv6GOGDiRRfGrLh2l1XQqtgsW9OaGOCXiIHhjf+Y8QCT6L2cH7T//xAAUEQEAAAAAAAAAAAAAAAAAAABA/9oACAECAQE/AE//xAAUEQEAAAAAAAAAAAAAAAAAAABA/9oACAEDAQE/AE//2Q==');
+processEmbImg('emb25931C095','data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEABsbGxscGx4hIR4qLSgtKj04MzM4PV1CR0JHQl2NWGdYWGdYjX2Xe3N7l33gsJycsOD/2c7Z//////////////8BGxsbGxwbHiEhHiotKC0qPTgzMzg9XUJHQkdCXY1YZ1hYZ1iNfZd7c3uXfeCwnJyw4P/Zztn////////////////CABEIAFAAUAMBIgACEQEDEQH/xAAZAAEAAwEBAAAAAAAAAAAAAAAAAgMEBQH/2gAIAQEAAAAAyVALagaLsLxLRo0ew4469hTlyDr2I5c1Lxfp0zQ4w1ariPHeOzYz5c0R0Kc3gWVALP/EABgBAAMBAQAAAAAAAAAAAAAAAAADBAUC/9oACgICEAMQAAAAAAUxqwgqmf3xqwhm2TuoTpRhl3L7pTfICWOWAf/EACgQAAIBAwIEBgMAAAAAAAAAAAECAwAEESAyEDEzchIwQlFhcRMhQf/aAAgBAQABPwCaaSeRndiSfJileF1dGII1AEnABJpbaVuYC/dG1RUcliSAdKqzHCgmltJTuIWltYhzy1ABRgAAcJenJ2nTD0Y+0aGuIk9WfqpLssCqrgHTD0o+0cXRHGGGaazX0MRTwSoCSuR7jSlxLGAAcj2NLeKd6kUkiSbWB4y9KTtOmK1Z1DFgAaW1iX+ZPzXhFfsVn4qUj8UnadMPRj7RwJAGSQBT3UK8iW+qe8c7QFpnd9zE6Uuo0iRcEkLT3crbcLTMzHLEnVNDJDIyOpBHkxRPK6oikkmv/8QAIREBAAIBBAEFAAAAAAAAAAAAAQIDEQAEEBJhICIxMkH/2gAIAQIBAT8A5b6hx2y+ObN1PKRA1Kc5/aS6rpskj15s21oqGde6L+iar3NoguebL7WUjtgzqMZz+IrqG1nkZYOSioV65fPo/8QAHhEBAQACAwEAAwAAAAAAAAAAAQIDEQAQITEgQVH/2gAIAQMBAT8A7MVv67jBOhXhMz8A5eSATfcZo0D5zyj+nLwwinncYoAdcamfqHKzzpD3ty2mt/h//9k=');
+
+processEmbImg('emb5014EBC0A','data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEABsbGxscGx4hIR4qLSgtKj04MzM4PV1CR0JHQl2NWGdYWGdYjX2Xe3N7l33gsJycsOD/2c7Z//////////////8BGxsbGxwbHiEhHiotKC0qPTgzMzg9XUJHQkdCXY1YZ1hYZ1iNfZd7c3uXfeCwnJyw4P/Zztn////////////////CABEIAFAAUAMBIgACEQEDEQH/xAAaAAEAAwEBAQAAAAAAAAAAAAAAAgMFBgQB/9oACAEBAAAAANHnIgl0XLVALIe355qwfejzvfkV/Eqvm/z2j6ZQWYjf57Wq9/nsYcukohi7FN/mzU/kQLKwE+r52IJb/wD/xAAXAQADAQAAAAAAAAAAAAAAAAAAAQID/9oACgICEAMQAAAAvdsAS01p5wAaXM3oEyk3MtqYhsAS/8QAMRAAAQMCAwQJAwUAAAAAAAAAAQACAwQRBRSSEjFSVBATISMwMlFxgTNhchUgIkGR/9oACAEBAAE/AMQxIUfdsAMyfiNc83NTJ8GyztbzU2srO1vNTays7W81NrKztbzU2srO1vNTays7W81NrKZiFcwgipl+TdUGKZvu5eyVTSumlkkdvc4nwYpHRSxyN3tcCgLkBfp8/qxGgnHApIpIjZ7CP3t8zfcKV/Vxvfa9gShiPFEmuiqI+Jp3gp9I8TmJnpcXU1NLCAX2sVDBJPtbFuxTQSQbO3btUVNLM0uZawNlIwxvcw2uE3zN9wqn6E34now5x25G/a6qXBk9K/7kKubtU7jwkFUIDKYvP9klYg28LXcLlSAR0zCfQuKc4vc5x3kkpvmb7hVP0JvxPRQRFrXSEebcsRfeRjOEInrqYnijU3dUAb6tAUvfURPrGCqo9VSlo9Azob5m+4TmB7S1wuCm0lOw3EQU9ZHECGkOenOLnFzjck3KoHbUFuEkLEX/AE2fKoXbVOBwkhYi/wDlGz56dt/G7/UXOO9xPgTROhlkjdva4jwYo3SyMjbvc4ALEMMzfeRdkqfQVzDY0svw26yVbys2grJVvKzaCslW8rNoKyVbys2grJVvKzaCslW8rNoKbQVzjYUsulYdhmVPWy2Mq//EACARAAICAQQDAQAAAAAAAAAAAAABAhESIDFCUSEiMmL/2gAIAQIBAT8AS0NEIp3ZjGWzKZTqymQ2kQ+kbuaOOP5J8V0iMsb8GfSojKnZn7WN27E9DZ//xAAfEQADAQABBAMAAAAAAAAAAAAAAQIREjEyQlEhImL/2gAIAQMBAT8AmUjEYjEVKaIlPdOMV2sx+jHmmMjpZHcjq7R4ufyX4r0ia478HP0sJri9Of20b16TSZqNRqKpI//Z');
+
+processEmbImg('emb42A8959FA','data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEABsbGxscGx4hIR4qLSgtKj04MzM4PV1CR0JHQl2NWGdYWGdYjX2Xe3N7l33gsJycsOD/2c7Z//////////////8BGxsbGxwbHiEhHiotKC0qPTgzMzg9XUJHQkdCXY1YZ1hYZ1iNfZd7c3uXfeCwnJyw4P/Zztn////////////////CABEIAFAAUAMBIgACEQEDEQH/xAAaAAADAQEBAQAAAAAAAAAAAAAABAUDAQYC/9oACAEBAAAAAPRzMQA2pzlqAAIb5sxMqOSbddPrPnqdL4nK3E+s+ev0SXKuJjXnqtHk1O2mNQ8qOKjdhL45ROnOzjST0AOVLcZcAN7X/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAQDAQL/2gAKAgIQAxAAAADeXvA46nrCiQnrCiT1yeoKJfGuuIZbf//EAC8QAAEEAAIIBAcBAQAAAAAAAAEAAgMEFHIFERIzNFNioRMVUpEhIiQxQUOSEEL/2gAIAQEAAT8Ae9rGlzjqAUl6Qn5AGhYuxzOwWLsczsFi7HM7BYuxzOwWLsczsFi7HM7BR3pAfnAcEx7XtDmnWCr8hLmx/gDWoIDO4jXqA+5WBh6/dYGDq91gYOr3WBg6vdYGDq91gYev3ViAwOHx1tP2KovIe5n4I1q7vzlCobuTOp7E4mlAmeBtu/6KxNjnyf0VoyaV9hwfI9w2FfnmbblDJXgZlibHPk/oqjPM61EHSvIzK/uWZ1T4huUq7vzlCobp+dT7+bO5UqkU0Ae5gJ1lQVIoXFzGAFS0oZXl7mAkq9VighDmMAO2FQ4yFX9yzOqfENyuV3fnKFQ3UmdT7+bO5aL4QZnf7pXhxnCocZCr+5ZnVLiG5XK9vzlCobqTOp9/NncqNyvBXDHvIOsqG5XncWRuJIGv7KW9Whe5j3kOHSr9uvPCGxuJO2qHGQq/uWZ1S4luVyvcQcoWjt1JnU8UpmlIjf8AF7vwvCl5T/5K0Yx7bDiWOA2FeZI61KQxxXhS8p/8lUY5BbiJY4BaQ3DM6o8S3K5Xz9U4dLVVteA4hwJY5YunzOxWKp8zsULlQfs7FG3T5nYrFU+Z2KFumP2dirdvxyA0EMaqJ+qZlctKwu+SduVyD1tLaW0tpbS2lthaKicXvnOVqIDgQQCCNRBU2iQSTC/V0uXlNr1RLym16ol5Ta9US8pteqJeU2vVEvKbXqiUOiOdJr6WprWtAa0AADUAF//EACERAAIBAwQDAQAAAAAAAAAAAAECAAMSUhETM1EggaGR/9oACAECAQE/AERQtzS+lj8l9LH5L6WPyOilbljcI8E4j7jcI8E4m9wgtSAHUsfEyx8T+Sx8TACtI69GU6mg0M3V7E3V7E3V7EqVNRoJ/8QAIhEAAQMDBAMBAAAAAAAAAAAAAQACAxITUjRRcZERIKEz/9oACAEDAQE/AJJHl9DFbnz+q3Pn9VufL6o5HtfQ9M1B5PpJqG8hM1B5PpJ+7eQgQ2ck7qtmY7VbM29qtmY7RIfO0jcKSKo+QrJ2KsnYqydio4qT5K//2Q==');
+processEmbImg('emb110F4C826','data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEABsbGxscGx4hIR4qLSgtKj04MzM4PV1CR0JHQl2NWGdYWGdYjX2Xe3N7l33gsJycsOD/2c7Z//////////////8BGxsbGxwbHiEhHiotKC0qPTgzMzg9XUJHQkdCXY1YZ1hYZ1iNfZd7c3uXfeCwnJyw4P/Zztn////////////////CABEIAFAAUAMBIgACEQEDEQH/xAAaAAADAQEBAQAAAAAAAAAAAAAAAwUEAgYB/9oACAEBAAAAAPSgBOw0dnQBLlNd3QNZGnDnC1Us2EqvwFuCj4XduCcXPPJ+st6584zoq8YisycUzf8AIk8d2ejAI8ljuvRABKm1KH//xAAZAQADAQEBAAAAAAAAAAAAAAAAAwQCAQX/2gAKAgIQAxAAAAAA1mibnQU16OdameqiVNCm2Qz04ZVHjbVed6YaxbEvf//EACgQAAICAQIGAgEFAAAAAAAAAAECAwQRABASIjFBUXEggTIFEyEwQv/aAAgBAQABPwD5WrvBmOI83dtQSyAsQ51Hc7SD7GlZXGVII+Vu71jhPt9oerbI7IwZTqzbWDlHM+q9tJuU8r727v7mY4jydz53iVgpcg8J6HzjeaOSJyH9g+dZ1WvdEmPptW7pnyiZEe9WhnDzj0mr2AIvveWJJkKuNT13gbDdOzbEZ1HFJK4RFJOqtJIOY80nna/0i9neWWOFC7nA1ZtyWHyf4Ufiug2dopXiYMhwdVraTjHR/G1/pF7O9ieSeQl/QHjap+nFsSTggdk1bqNBzLkx7Akaq3+iTH0+r/SH73t0Vn50wsmqtFIMO3NJsQCCCMg6t0jFmSP8O48bxyOy8BYlV6Dxn+i5RxmSEe12i/1sis7BVGSfnco8WZYR7XUMUrMQEYnUVDvK30NJGkYwigDX/8QAIxEAAgEEAQMFAAAAAAAAAAAAAQIAAxARIRMSMcEgMjOCof/aAAgBAgEBPwCyqWOoqgajUQe2oKSlfM4m6sQKFGBA4LhRaiW+tqocDXaUvkWwqqF8QVWDZ/IrBhkTiAcMPQjlDkRXVhmPXUe3Zn//xAAjEQACAgEDAwUAAAAAAAAAAAABAgADERAhMhITwSAxM4Kh/9oACAEDAQE/ANGYKMmM5O8W4jlvDc4bxO6vTkQsWOTChCFjpcF+09pSUJ35S7420NTlvMNKlcfsZSpwZ3SUKn0OgcYMZGQ4iUMeWwn/2Q==');
+processEmbImg('emb7477E6CCF','data:image/jpeg;base64,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');
+processEmbImg('emb802572090','data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEABsbGxscGx4hIR4qLSgtKj04MzM4PV1CR0JHQl2NWGdYWGdYjX2Xe3N7l33gsJycsOD/2c7Z//////////////8BGxsbGxwbHiEhHiotKC0qPTgzMzg9XUJHQkdCXY1YZ1hYZ1iNfZd7c3uXfeCwnJyw4P/Zztn////////////////CABEIANwAlgMBIgACEQEDEQH/xAAaAAEBAQEBAQEAAAAAAAAAAAAAAQMCBAUG/9oACAEBAAAAAPzlAACUUAQBaAIgq6ekBPJyinXt83XfRxn3fNAd+zz30Z93jDvvy8hevX0AuHnkKu+ZSL1jEpd8t3V5nOfeMSnW2Xo79znwTLrGBbvl6d6c+fHrGBbvl6vUrjyY9YoLd8vTv1HPnx6xQW75bvdePB1ncUFu+WvVHPLGQW74lNvRt83OQW7ZxT2XDDlBWmgNc8OUBVKJCGkUEIpZ6cjvhdM+uWkZ1lCp0SualnejnSZzuLc+p3lr5jo6g5TSQ6das7xquTPdx1nioFQCAoCAlAACf//EABgBAQEBAQEAAAAAAAAAAAAAAAABAgME/9oACgICEAMQAAAA2AACKNZsCJqULN8+m9o45zZuKrpiSgzvFCurWXKbdObAquq8ZzW+jncIquq85xbvbncIqugsSYx0zYqugGMzO5Y0KqCANgKiiDKqAiorm0qKMqMsgAAj/8QAPBAAAgECAwIKCQIGAwEAAAAAAQIRAAMSITEEchMwMjNBUVNhcbEUICJSVIGSoaIQIzRCUHORwUBigtH/2gAIAQEAAT8A/pcVFRUVFRUVFRxSIzsFRSzHQCvQtr7Bq9C2rsGr0LauwavQtq7Bq9C2rsGr0LauwavQtq7Bq9C2vsGo7FtQEmw1EcQK2aRb2sjsh5/oollE6kCgku64uSGP00ttSpbhNInLrrg5THi68vCuDPBl56Jj5xTqUIE9AP8An9LZK3LZBIONa2oRtF+O0aj64qxzW1/218/0SA6k6BgaF4l7kt7JDRSsBbuDpJWPlSuAtodRafBqZ1i6oOWFVX5VdwNDBxyVEQegfonLTfXzrav4m/8A3Go+uK2d1Rb+JMQKCRMdNcLs3wv5muF2b4X8zXC7N8L+Zrhdm+F/M1wuzfC/ma4XZvhfzNcLs3wv5muF2b4X8zQu7NKxsvT75raDN+6etzR9cVb5F/dHnxI5S+Iq9zt3fPE2+Rf3B5/obSLk9whukBZisFntG+msFrtG+muDt+8/0Vgtdo301hs9o/001tcOJHkAwZEEUOUviKvc9d3zxNvkX9wedHQ1f556s2ccszYba8pv9CkurZtY0thcRhOk7xo7TeRLD4pkNiB6c6vCy5XEAocSlweTVdttbcqwzFDmbu8lDlL4ir3PXd88Tb5F/cHnR0NX+deto9jDZGlsZ97HWtpyuBOhEVaucxs3g/nXK2Vh7lz7NTfubNJ5Vox/5NDmru8lDlL4ir3PXd88Tb5F7dHnXQau5Xm3hW0NbG03JtAwT0nPvrainDsOD0aSZOdXWtmxZi0BIaMzlnVprYsXZtAxgnM50hX0baISOTnPfQ5q7vLQ5S+Iq9ztzfPE2+Re3R50dDV7nXp/3rQuDlKArjyNX/bFq77ygHxWrnMbP4N500ps6LHtXHxR3DIVe/atrY/mnE/j1UOau7yUOUviKvc7c3zxNvkX90edHQ1fMXnq3dNtgytBpL+ysrI4KBurMT1ip2QraDX5CTkF1k1d2tMRa0IY5YzqB1LRYddLzNzeWhqviKvc7c3zxNvkX9wef6LeuqAA2Qr0i7732FcPc977CuHue99hXD3Pe+wrh7vvfYUzu8YmmKAzHiKvc7c3zxNvkX9wefr2bZu3UtzGIxNG7ZUwmz28PWwk0j2wnC3bFkJ/KAubmrjY2ZoiSTxNvkX9wefr7H/FWfGrdtAnDXub6F6XNXrzXXxN8gNAKPEo5QyIOUEHQisVjsm+usVjsm+usVjsm+usVjsm+usVjsm+usVnsm+urV61auK4tHL/ALVdvPdbE3yHQBRP/Bmp9c2nUSVpUZpjzisDYsMGZiKKMokihbdhIH3AoIzEgDSsDYsMZ0yMuorCZiM6giKwmQI10rCYmMqIIMGipGvVNYGBYQZGvdWFjGRz0pkZRJH3mjacAkj7ihbdhIGXXIFOV/dMKJ0IaSaAxIAIkE5TGtLC3UlgYYZ1GBXkjMAAAzSwba+ypzOrRSEAXJAOQ86QgltBKwKcAWzOR3pounCNkujZyeqiA2ASOTQgXLQJGWGach0BGWHLDVxSSWyiB0jqolSASR7Cj55UXh7zSJ86lBghoBD/ACmiMCOCRJiADNXLgxOFC55TWHGEgjJYpkdYxKRWE5iNNag5Za6VBz7qwtpB0msDSBGokVBieisDzhgz1UyOsSCJpkdeUCKgwDGR0rA+HFBjroIzSQpMUASYFYWkCDNMrLqIqDExlMUqO2gmgC2QBNXCOFJ7xTCDdaRDTGesmkIwYum3MfPSrMMSh0I8s6Z8SF+k+z/ulI4PBIlgSO7u+dWmgnSIOvWMxSDG+Z7yaJi4hIAAIgAzAFOMKAGJxE5GadsSW5PXUEW51LASZ0FWdVMiAekxHfSFRMkj2SBlOtO0XZWDBWKuAALkA2cgU+Hg+iABhM5knWkIAdumIHzrZmCuxJAy9QqwAJBg0FZtBNQYJjIVwbwDhMHSijLEisLYsMGeqirAwQZpkZZkepbtlzAjxNYGxYYzmIpljpB8DNFCFBMZ9+dMuGM8yAT3TQeXLMRnrImnNssMKkCnZCvsQO6M/wDNO1s29RkPZH+z31auIls9efVSOFVu8iR1irlyIVGkADypmEqo0WkdeEuT0zV1wWQKdOmrrIyCGkjKjcQqQE8v/lK6BGBQTI66BA1UGrLrj1C/cUtxEuyB7MRV1pIMqd2aulSBBTIAZA1dzIboKj1JqeNn+kf/xAAmEQACAAYBAgcBAAAAAAAAAAAAAQIREiExUSADQRATMDJCYXFi/9oACAECAQE/APUkUspZSyT1zgUMrip0sEShlbwfBGEibJsmxMiy+CO0I5JtSRbSLaQ1dEWXwR2hIvdF++L+JFl8EdoSL3Rfvi/iRZfBDxCVxbZXFtlcW2TvdkTm3wRZpXKVtFK2iS2hvhS9Enok9EmXLkmSZS9FMWmOJzwT+ibtYTeht90VO9ir6yVvRU8JCf8AJVmwona2Cp6L2mibvYm1lFWLE203LI254F1HCpSKhdTNjzHYcbZ5jlIfUbKsHmOSK82yOKb9P//EACYRAAECBAUEAwAAAAAAAAAAAAEAAhESIZEgMDFSYRAyQXETQlD/2gAIAQMBAT8AzC4DUhTt3C6nbuF1O3cLqdu4Yh3O6UVEdCmdo9YSwExrdSDm5Ug5uVIOblSDm5QEMTiAvkO1NfHxkP7ghoyiB4+2Q8RqFUQoaFMaTUjKJgi87UMh4i0+k1vk6/rf/9k=');
+processEmbImg('emb647683979','data:image/jpeg;base64,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');
+processEmbImg('emb1C8738
+
+
+fill="#444444" /></svg></div></div></a></div><ul><div class=
+	
+"l_ecrd_hov_imgset l_ecrd_hovblk_5_0">Visual Studio Code is a free, open-source, cross-platform code editor that supports HTML syntax highlighting, IntelliSense, Emmet, debugging, extensions, and more.</div><li class="l_ecrd_trig_imgset l_ecrd_hovblk_5_1"><div class="l_ecrd_simgset_item"
+
+	style="width:80px;"><a target="_blank" hover-data="-" href="https://www.bing.com/ck/a?!&amp;&amp;p=6fbd696fdda0c61bJmltdHM9MTcwNDE1MzYwMCZpZ3VpZD0xZjdkZTRkMS01ZjFmLTZmZTYtMGY4Yy1mNzNjNWVhZDZlM2YmaW5zaWQ9NTY5OQ&amp;ptn=3&amp;ver=2&amp;hsh=3&amp;fclid=1f7de4d1-5f1f-6fe6-0f8c-f73c5ead6e3f&amp;u=a1L3NlYXJjaD9GT1JNPVNOQVBTVCZxPVZpc3VhbCtTdHVkaW8rQ29kZSZmaWx0ZXJzPWZjaWQlM2ElMjIwLTllYmI2ODkwLTM0MmQtOTVjMy02NTVjLTcyZjBmNzJmZTVlYiUyMitzaWQlM2ElMjIzYWUzMzNjNi03YzU4LTkxM2EtOTA2OC04NWVkMDFhNjk5ZDIlMjI&amp;ntb=1" h="ID=SERP,5699.1"><div class="cico" style="width:80px;height:80px;"><img height="80" width="80" title="Visual Studio Code" data-src-hq="https://th.bing.com/th?id=OSK.f7b9c150ce4a552225f3285d2045d78b&amp;w=80&amp;h=80&amp;c=7&amp;o=6&amp;dpr=1.3&amp;pid=SANGAM" role="presentation" data-priority="2" id="emb110F4C826" class="rms_img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAEALAAAAAABAAEAAAIBTAA7" /></div><div class="l_ecrd_simgset_item_data"><div class="l_ecrd_rq_btxt">Visual Studio Code</div></div></a></div></li><div class="l_ecrd_hov_imgset l_ecrd_hovblk_5_2">Sublime Text is a proprietary, cross-platform code editor that features a minimalist interface, multiple selections, command palette, distraction-free mode, split editing, and a powerful plugin system.</div><li class="l_ecrd_trig_imgset l_ecrd_hovblk_5_3"><div class="l_ecrd_simgset_item"
+
+		style="width:80px;"><a target="_blank" hover-data="-" href="https://www.bing.com/ck/a?!&amp;&amp;p=322cc2afa7cd1292JmltdHM9MTcwNDE1MzYwMCZpZ3VpZD0xZjdkZTRkMS01ZjFmLTZmZTYtMGY4Yy1mNzNjNWVhZDZlM2YmaW5zaWQ9NTcwMA&amp;ptn=3&amp;ver=2&amp;hsh=3&amp;fclid=1f7de4d1-5f1f-6fe6-0f8c-f73c5ead6e3f&amp;u=a1L3NlYXJjaD9GT1JNPVNOQVBTVCZxPVN1YmxpbWUrVGV4dCZmaWx0ZXJzPWZjaWQlM2ElMjIwLTllYmI2ODkwLTM0MmQtOTVjMy02NTVjLTcyZjBmNzJmZTVlYiUyMitzaWQlM2ElMjI4ZGI5OGZhNS0wZmRhLTk0ZTUtZTZkNS02YjI2MTQzMDhjNjclMjI&amp;ntb=1" h="ID=SERP,5700.1"><div class="cico" style="width:80px;height:80px;"><img height="80" width="80" title="Sublime Text" data-src-hq="https://th.bing.com/th?id=OSK.8eea1256ca716beb5c0e6c8d143c5695&amp;w=80&amp;h=80&amp;c=7&amp;o=6&amp;dpr=1.3&amp;pid=SANGAM" role="presentation" data-priority="2" id="emb25931C095" class="rms_img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAEALAAAAAABAAEAAAIBTAA7" /></div><div class="l_ecrd_simgset_item_data"><div class="l_ecrd_rq_btxt">Sublime Text</div></div></a></div></li><div class="l_ecrd_hov_imgset l_ecrd_hovblk_5_4">Atom is a free, open-source, cross-platform code editor that is based on web technologies and has a built-in package manager, file system browser, smart autocompletion, multiple panes, and a customizable interface.</div><li class="l_ecrd_trig_imgset l_ecrd_hovblk_5_5"><div class="l_ecrd_simgset_item"
+     style="width:80px;"><a target="_blank" hover-data="-" href="https://www.bing.com/ck/a?!&amp;&amp;p=4d8dd55c7b428473JmltdHM9MTcwNDE1MzYwMCZpZ3VpZD0xZjdkZTRkMS01ZjFmLTZmZTYtMGY4Yy1mNzNjNWVhZDZlM2YmaW5zaWQ9NTcwMQ&amp;ptn=3&amp;ver=2&amp;hsh=3&amp;fclid=1f7de4d1-5f1f-6fe6-0f8c-f73c5ead6e3f&amp;u=a1L3NlYXJjaD9GT1JNPVNOQVBTVCZxPUF0b20mZmlsdGVycz1mY2lkJTNhJTIyMC05ZWJiNjg5MC0zNDJkLTk1YzMtNjU1Yy03MmYwZjcyZmU1ZWIlMjIrc2lkJTNhJTIyN2FkYjYzZjItMWFhMi1lZDU3LTEyMzgtNmRjMzUzZmZkNjNiJTIy&amp;ntb=1" h="ID=SERP,5701.1"><div class="cico" style="width:80px;height:80px;"><img height="80" width="80" title="Atom" data-src-hq="https://th.bing.com/th?id=OSK.ade8c6013859c234409050eecbc5a479&amp;w=80&amp;h=80&amp;c=7&amp;o=6&amp;dpr=1.3&amp;pid=SANGAM" role="presentation" data-priority="2" id="emb31E3E4760" class="rms_img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAEALAAAAAABAAEAAAIBTAA7" /></div><div class="l_ecrd_simgset_item_data"><div class="l_ecrd_rq_btxt">Atom</div></div></a></div></li><div class="l_ecrd_hov_imgset l_ecrd_hovblk_5_6">Brackets is a free, open-source, cross-platform code editor that is focused on web development and has a live preview feature, inline editing, quick edit, preprocessor support, and extension manager.</div><li class="l_ecrd_trig_imgset l_ecrd_hovblk_5_7"><div class="l_ecrd_simgset_item"
+     style="width:80px;"><a target="_blank" hover-data="-" href="https://www.bing.com/ck/a?!&amp;&amp;p=47dd57e199f8d14cJmltdHM9MTcwNDE1MzYwMCZpZ3VpZD0xZjdkZTRkMS01ZjFmLTZmZTYtMGY4Yy1mNzNjNWVhZDZlM2YmaW5zaWQ9NTcwMg&amp;ptn=3&amp;ver=2&amp;hsh=3&amp;fclid=1f7de4d1-5f1f-6fe6-0f8c-f73c5ead6e3f&amp;u=a1L3NlYXJjaD9GT1JNPVNOQVBTVCZxPUJyYWNrZXRzJmZpbHRlcnM9ZmNpZCUzYSUyMjAtOWViYjY4OTAtMzQyZC05NWMzLTY1NWMtNzJmMGY3MmZlNWViJTIyK3NpZCUzYSUyMmNlNDZkZDQxLTg1OTYtOTgyMC05NTVhLTY3ZmIyNzJhM2I5YiUyMg&amp;ntb=1" h="ID=SERP,5702.1"><div class="cico" style="width:80px;height:80px;"><img height="80" width="80" title="Brackets" data-src-hq="https://th.bing.com/th?id=OSK.5ed91df3808037f666a985497bbc75c2&amp;w=80&amp;h=80&amp;c=7&amp;o=6&amp;dpr=1.3&amp;pid=SANGAM" role="presentation" data-priority="2" id="emb42A8959FA" class="rms_img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAEALAAAAAABAAEAAAIBTAA7" /></div><div class="l_ecrd_simgset_item_data"><div class="l_ecrd_rq_btxt">Brackets</div></div></a></div></li><div class="l_ecrd_hov_imgset l_ecrd_hovblk_5_8">Dreamweaver is a proprietary, cross-platform web development tool that offers a visual design mode, code editor, live view, code hinting, site management, and FTP support.</div><li class="l_ecrd_trig_imgset l_ecrd_hovblk_5_9"><div class="l_ecrd_simgset_item"
+     style="width:80px;"><a target="_blank" hover-data="-" href="https://www.bing.com/ck/a?!&amp;&amp;p=3c05be75e183ac0bJmltdHM9MTcwNDE1MzYwMCZpZ3VpZD0xZjdkZTRkMS01ZjFmLTZmZTYtMGY4Yy1mNzNjNWVhZDZlM2YmaW5zaWQ9NTcwMw&amp;ptn=3&amp;ver=2&amp;hsh=3&amp;fclid=1f7de4d1-5f1f-6fe6-0f8c-f73c5ead6e3f&amp;u=a1L3NlYXJjaD9GT1JNPVNOQVBTVCZxPURyZWFtd2VhdmVyJmZpbHRlcnM9ZmNpZCUzYSUyMjAtOWViYjY4OTAtMzQyZC05NWMzLTY1NWMtNzJmMGY3MmZlNWViJTIyK3NpZCUzYSUyMmUyMzI2ZjY3LWE4MDItYjZlYi05ZTNkLWExMjFmNjY0YWFlZiUyMg&amp;ntb=1" h="ID=SERP,5703.1"><div class="cico" style="width:80px;height:80px;"><img height="80" width="80" title="Dreamweaver" data-src-hq="https://th.bing.com/th?id=OSK.8c8516cf7f1e20f02cbc71d72df31876&amp;w=80&amp;h=80&amp;c=7&amp;o=6&amp;dpr=1.3&amp;pid=SANGAM" role="presentation" data-priority="2" id="emb5014EBC0A" class="rms_img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAEALAAAAAABAAEAAAIBTAA7" /></div><div class="l_ecrd_simgset_item_data"><div class="l_ecrd_rq_btxt">Dreamweaver</div></div></a></div></li></ul></div></div><div class="lite-entcard-blk"
+     id="l_ecrd_blk_4_EntityCompare"><div class="l_ecrd_tppad"><div class="ux_ecmp ent0" id="ecmp_23_6EE3"><h3>Compare</h3><div class="ux_ecmp-hdr"><div><div>Html</div></div><div><div><select class="ux_ecmp-sel" title="Select comparison target" aria-label="Select comparison target" disabled="true"><option value="0" selected="selected" data-appns="SERP" data-k="5705.1">Markdown</option><option value="1" data-appns="SERP" data-k="5706.1">Latex</option></select></div></div></div><ul><li><strong>Standardization</strong></li><li><div>Yes, Defined By The World Wide Web Consortium (W3C)</div><div class="ux_ecmp-esel"><div>No Official Specification, Several Flavors Exist</div><div>No Official Standard, Only A De Facto Standard By The Latex Project</div></div></li><li><strong>Extensions And Variants</strong></li><li><div>Html5; Markup Languages That Can Be Used With Or Embedded In Html: Xhtml, Xml, Svg, Mathml, Etc.</div><div class="ux_ecmp-esel"><div>Commonmark, Github Flavored Markdown, Pandoc Markdown, Etc.</div><div>Ams-Latex, Xelatex, Lualatex, Etc. (Plain Tex Is A Separate Format Of Tex)</div></div></li><li><strong>Main Use Cases</strong></li><li><div>Web Development, Web Design, Web Applications</div><div class="ux_ecmp-esel"><div>Web Publishing, Documentation, Blogging, Note-Taking</div><div>Academic Writing, Scientific Publishing, Mathematics, Typography</div></div></li></ul></div></div></div><div class="lite-entcard-blk"
+     id="l_ecrd_blk_5_Trivia"><div class="l_ecrd_trivia"><div class="l_ecrd_txt_hlt l_ecrd_txt_nound">Which browser supports all new features of HTML5?</div><div class="l_ecrd_trivia_options_Vertical"><a class="l_ecrd_hov_thmtxt l_ecrd_trivia_option l_ecrd_trivia_option_Vertical" target="_blank" hover-data="-" href="https://www.bing.com/ck/a?!&amp;&amp;p=1bff328b1b40a2e4JmltdHM9MTcwNDE1MzYwMCZpZ3VpZD0xZjdkZTRkMS01ZjFmLTZmZTYtMGY4Yy1mNzNjNWVhZDZlM2YmaW5zaWQ9NTcwNw&amp;ptn=3&amp;ver=2&amp;hsh=3&amp;fclid=1f7de4d1-5f1f-6fe6-0f8c-f73c5ead6e3f&amp;u=a1L3NlYXJjaD9xPVdoaWNoK2Jyb3dzZXIrc3VwcG9ydHMrYWxsK25ldytmZWF0dXJlcytvZitIVE1MNSUzZiZmaWx0ZXJzPWR3X2Fuc3dlcnN0b2Jlc3VwcHJlc3NlZCUzQSUyMkNvbnZlcnNhdGlvbmFsU2VhcmNoJTIyK0lzQ29udmVyc2F0aW9uJTNBJTIyVHJ1ZSUyMitXUU9za2V5JTNBJTIyM2U4NmEwOWYtYWQ0NS1mZTU1LTdiY2EtYmMwODIwZDU2MTVjJTIyK1dRSWQlM0ElMjIxJTIyK1dRUUklM0ElMjIwJTIyK1dRQ0klM0ElMjIwJTIyK0JUQ0xhbmclM0ElMjIxJTIyK1Nob3dUaW1lc1Rhc2tQYW5lVHJpZ2dlciUzQSUyMmZhbHNlJTIyK1dRU0NPUkUlM0ElMjIxJTIyJkZPUk09Q1dRSFlMJnJub3Jld2FyZD0xJnNraXBvcGFsbmF0aXZlPXRydWU&amp;ntb=1" h="ID=SERP,5707.1"><div class="l_ecrd_trivia_index_div"><div class="l_ecrd_trivia_index">A</div></div><div class="l_ecrd_trivia_answer_div"><span
+      
+	-->
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<link rel="stylesheet" type="text/css" href="stylesheet.css">
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+</head>
+<body >
+	<h1 class="text-center ">BIHAR POLICE ACADEMY , RAJGIR </h1>
+
+
+	
+    
+    	<div class="panel">
+    		<h2 class="text-center ">Indian Penal Code	  to	  Bhartiya Nyay Sanhita </h2>
+    		
+			<h3 class="text-center" >Enter IPC Section</h3> 
+    			
+    			<form>
+    				<div id="weightInput">
+    					
+    		     		<input  id="weight"/>         				</div>
+    				
+    		     <button type="button" class="btn" id="mybtn"   onclick="calculate()">CLICK</button>
+    		</form>
+			<h4 class="text-center">Bhartiya Nyay Sanhita Section :</h4>
+    		<div id="results" </div>
+    	</div>
+		<div class="container">
+   
+		</div>
+	
+	<script src="main.js"></script>
+</body>
+
+</html>

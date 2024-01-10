@@ -1,0 +1,252 @@
+
+/*
+
+
+  @media (min-width: @screen-sm-min) {
+    margin-left:  (@gutter / -2);
+    margin-right: (@gutter / -2);
+  }
+
+  // Negative margin nested rows out to align the content of columns
+  .row {
+    margin-left:  (@gutter / -2);
+    margin-right: (@gutter / -2);
+  }
+}
+
+// Generate the extra small columns
+.make-xs-column(@columns; @gutter: @grid-gutter-width) {
+  position: relative;
+  // Prevent columns from collapsing when empty
+  min-height: 1px;
+  // Inner gutter via padding
+  padding-left:  (@gutter / 2);
+  padding-right: (@gutter / 2);
+
+  // Calculate width based on number of columns available
+  @media (min-width: @grid-float-breakpoint) {
+    float: left;
+    width: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the small columns
+.make-sm-column(@columns; @gutter: @grid-gutter-width) {
+  position: relative;
+  // Prevent columns from collapsing when empty
+  min-height: 1px;
+  // Inner gutter via padding
+  padding-left:  (@gutter / 2);
+  padding-right: (@gutter / 2);
+
+  // Calculate width based on number of columns available
+  @media (min-width: @screen-sm-min) {
+    float: left;
+    width: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the small column offsets
+.make-sm-column-offset(@columns) {
+  @media (min-width: @screen-sm-min) {
+    margin-left: percentage((@columns / @grid-columns));
+  }
+}
+.make-sm-column-push(@columns) {
+  @media (min-width: @screen-sm-min) {
+    left: percentage((@columns / @grid-columns));
+  }
+}
+.make-sm-column-pull(@columns) {
+  @media (min-width: @screen-sm-min) {
+    right: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the medium columns
+.make-md-column(@columns; @gutter: @grid-gutter-width) {
+  position: relative;
+  // Prevent columns from collapsing when empty
+  min-height: 1px;
+  // Inner gutter via padding
+  padding-left:  (@gutter / 2);
+  padding-right: (@gutter / 2);
+
+  // Calculate width based on number of columns available
+  @media (min-width: @screen-md-min) {
+    float: left;
+    width: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the medium column offsets
+.make-md-column-offset(@columns) {
+  @media (min-width: @screen-md-min) {
+    margin-left: percentage((@columns / @grid-columns));
+  }
+}
+.make-md-column-push(@columns) {
+  @media (min-width: @screen-md-min) {
+    left: percentage((@columns / @grid-columns));
+  }
+}
+.make-md-column-pull(@columns) {
+  @media (min-width: @screen-md-min) {
+    right: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the large columns
+.make-lg-column(@columns; @gutter: @grid-gutter-width) {
+  position: relative;
+  // Prevent columns from collapsing when empty
+  min-height: 1px;
+  // Inner gutter via padding
+  padding-left:  (@gutter / 2);
+  padding-right: (@gutter / 2);
+
+  // Calculate width based on number of columns available
+  @media (min-width: @screen-lg-min) {
+    float: left;
+    width: percentage((@columns / @grid-columns));
+  }
+}
+
+// Generate the large column offsets
+.make-lg-column-offset(@columns) {
+  @media (min-width: @screen-lg-min) {
+    margin-left: percentage((@columns / @grid-columns));
+  }
+}
+.make-lg-column-push(@columns) {
+  @media (min-width: @screen-lg-min) {
+    left: percentage((@columns / @grid-columns));
+  }
+}
+.make-lg-column-pull(@columns) {
+  @media (min-width: @screen-lg-min) {
+    right: percentage((@columns / @grid-columns));
+
+
+
+
+*/
+
+
+
+body {
+    background-color: rgb(211, 203, 239);
+    text-align: center;
+    background-image: url('BHARAT.png') ;
+    background-size: 30% ;
+    background-position: center ;
+    background-repeat: no-repeat;
+    background-blend-mode: soft-light;
+    
+     /*saturation , screen , luminous , soft light*/
+  
+}
+
+button {
+    background-color: rgba(0,0,0,0);
+    outline: none;
+}
+h1 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 40;
+    /*font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; */
+    
+}
+
+h2 {
+    margin-top: 20px;
+    margin-bottom: 30px;
+    font-size: 26;
+    font-weight: bold;
+    font-style: italic;
+
+}
+h3 {
+    
+    font-style: normal;
+}
+
+h4 {
+    
+    font-size: 16;
+    font-weight: bold;
+    font-style: normal;
+    
+}
+
+
+.btn {
+    margin-bottom: 5px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    color: rgb(1, 4, 4);
+    background-color: chartreuse;
+    width: 70px;
+    height: 40px;
+    font-weight: bold;
+    
+}
+
+input {
+    width: 30%;
+    padding: 5px 10px;
+    border: 4px solid #201f1d;
+    margin-bottom: 10px;
+    background-color: rgba(0,0,0,.4);
+    outline: none;
+    color: #fff;
+    font-size: 22px;
+    text-align: center;
+}
+
+input:focus {
+    border: 4px solid rgba(0,0,0,.4);
+    background-color: rgb(57, 56, 69);
+}
+
+form {
+    
+    padding: 2px;
+  
+    
+}
+
+form p {
+    margin-bottom: 1px;
+}
+
+form p:nth-child(1){
+    margin-top: 0;
+}
+
+.panel {
+    margin-top: 5px;
+    float: none;
+}
+
+@media (min-width:500px) {
+    .panel {
+        width: 50%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media (min-width: 1024px) {
+    .panel {
+        width: 80%;
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 22;
+        font-weight: bold;
+        font-style: italic;
+      
+    }
+}
